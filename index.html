@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meus Treinos</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+      colors: {
+        ink: {
+          50:  '#f7f8fa',
+          100: '#eef0f4',
+          200: '#d9dee6',
+          300: '#b8c0cc',
+          400: '#8a95a6',
+          500: '#5d6a7d',
+          600: '#3e4a5c',
+          700: '#2a3444',
+          800: '#1a2230',
+          900: '#0f1520',
+          950: '#070a12'
+        }
+      }
+    }
+  }
+};
+</script>
+<style>
+  * { -webkit-tap-highlight-color: transparent; }
+  body { font-feature-settings: "cv02","cv03","cv04","cv11"; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #2a3444; border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3e4a5c; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+</head>
+<body class="bg-ink-950 text-ink-100 font-sans antialiased min-h-screen">
+
+<script id="embedded-state" type="application/json">null</script>
+
+<!-- ================= HEADER ================= -->
+<header class="sticky top-0 z-40 bg-ink-950/90 backdrop-blur-xl border-b border-ink-800">
+  <div class="max-w-2xl mx-auto px-5 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-ink-800 border border-ink-700 flex items-center justify-center">
+        <svg class="w-4 h-4 text-ink-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h10.5m-10.5 10.5h10.5M3 12h18"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-sm font-bold text-white leading-tight">Meus Treinos</h1>
+        <p class="text-[11px] text-ink-400 leading-tight" id="headerSub">2 treinos por semana</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="downloadHtmlWithState()" class="text-[11px] font-semibold text-ink-300 hover:text-white px-3 py-1.5 rounded-lg border border-ink-800 hover:border-ink-700 transition">
+        Salvar
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ================= SELETOR DE PERFIL ================= -->
+<div class="max-w-2xl mx-auto px-5 pt-5">
+  <div class="flex gap-2 p-1 rounded-xl bg-ink-900 border border-ink-800">
+    <button onclick="setProfile('homem')" id="prof-homem" class="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all">
+      Homem
+    </button>
+    <button onclick="setProfile('mulher')" id="prof-mulher" class="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all">
+      Mulher
+    </button>
+  </div>
+</div>
+
+<!-- ================= ABAS ================= -->
+<nav class="max-w-2xl mx-auto px-5 mt-5">
+  <div class="flex gap-1 overflow-x-auto no-scrollbar">
+    <button onclick="switchTab('treinos')" id="tab-btn-treinos" class="tab-btn shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition">Treinos</button>
+    <button onclick="switchTab('progresso')" id="tab-btn-progresso" class="tab-btn shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition">Progresso</button>
+    <button onclick="switchTab('dieta')" id="tab-btn-dieta" class="tab-btn shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition">Dieta</button>
+  </div>
+</nav>
+
+<!-- ================= CONTEÚDO ================= -->
+<main class="max-w-2xl mx-auto px-5 py-6 pb-24 space-y-6">
+
+  <!-- ============ ABA TREINOS ============ -->
+  <section id="pane-treinos" class="pane space-y-6">
+    <!-- Seletor de treino A/B -->
+    <div class="grid grid-cols-2 gap-2">
+      <button onclick="selectWorkout(0)" id="wbtn-0" class="wbtn py-3 rounded-xl text-sm font-bold transition">Treino A</button>
+      <button onclick="selectWorkout(1)" id="wbtn-1" class="wbtn py-3 rounded-xl text-sm font-bold transition">Treino B</button>
+    </div>
+
+    <!-- Info do treino atual -->
+    <div class="bg-ink-900 border border-ink-800 rounded-2xl p-5">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="text-[11px] uppercase tracking-wider font-bold text-ink-400 mb-1" id="workoutLetter">Treino A</p>
+          <h2 class="text-lg font-bold text-white leading-tight" id="workoutTitle">—</h2>
+          <p class="text-xs text-ink-400 mt-1" id="workoutSubtitle">—</p>
+        </div>
+        <div class="shrink-0 text-right">
+          <div class="text-2xl font-bold text-white leading-none" id="workoutProgressNum">0/6</div>
+          <p class="text-[10px] text-ink-500 mt-1 uppercase tracking-wider font-semibold">feitos</p>
+        </div>
+      </div>
+      <div class="mt-4 h-1.5 bg-ink-800 rounded-full overflow-hidden">
+        <div id="workoutProgressBar" class="h-full bg-white transition-all duration-300" style="width:0%"></div>
+      </div>
+      <button onclick="resetWorkout()" class="mt-3 text-[11px] text-ink-500 hover:text-ink-300 font-medium transition">
+        Recomeçar treino
+      </button>
+    </div>
+
+    <!-- Aviso semanal -->
+    <div class="bg-ink-900 border border-ink-800 rounded-2xl px-5 py-4 flex items-center gap-3">
+      <svg class="w-4 h-4 text-ink-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <p class="text-[11.5px] text-ink-300 leading-relaxed">
+        Faça <strong class="text-white">1 dia do Treino A</strong> e <strong class="text-white">1 dia do Treino B</strong> por semana, com pelo menos 48 h entre eles.
+      </p>
+    </div>
+
+    <!-- Lista de exercícios -->
+    <div id="exercisesList" class="space-y-3"></div>
+  </section>
+
+  <!-- ============ ABA PROGRESSO ============ -->
+  <section id="pane-progresso" class="pane hidden space-y-6">
+    <!-- Resumo da semana -->
+    <div class="bg-ink-900 border border-ink-800 rounded-2xl p-5 space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-base font-bold text-white">Progresso da semana</h2>
+        <span id="weekBadge" class="text-xs font-mono font-bold text-ink-300">0/2 treinos</span>
+      </div>
+      <div class="h-1.5 bg-ink-800 rounded-full overflow-hidden">
+        <div id="weekBar" class="h-full bg-white transition-all duration-300" style="width:0%"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3 pt-1">
+        <div id="dayCard-0" class="rounded-lg border border-ink-800 bg-ink-950 p-4 transition">
+          <div class="text-[10px] uppercase tracking-wider font-bold text-ink-500">Treino A</div>
+          <div class="text-sm font-bold text-ink-300 mt-1" id="dayStatus-0">—</div>
+        </div>
+        <div id="dayCard-1" class="rounded-lg border border-ink-800 bg-ink-950 p-4 transition">
+          <div class="text-[10px] uppercase tracking-wider font-bold text-ink-500">Treino B</div>
+          <div class="text-sm font-bold text-ink-300 mt-1" id="dayStatus-1">—</div>
+        </div>
+      </div>
+      <button onclick="resetWeek()" class="text-[11px] text-ink-500 hover:text-ink-300 font-medium transition">
+        Recomeçar semana
+      </button>
+    </div>
+
+    <!-- Registro de medidas -->
+    <div class="bg-ink-900 border border-ink-800 rounded-2xl p-5 space-y-4">
+      <div>
+        <h2 class="text-base font-bold text-white">Registrar medidas</h2>
+        <p class="text-xs text-ink-400 mt-1" id="measureHelp">Acompanhe sua evolução.</p>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-ink-300 mb-1.5">Peso (kg)</label>
+          <input type="number" id="inWeight" step="0.1" inputmode="decimal" placeholder="0,0"
+                 class="w-full bg-ink-950 border border-ink-800 rounded-xl px-4 py-3 text-white text-sm font-medium focus:border-ink-500 focus:outline-none transition">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-ink-300 mb-1.5" id="lblMeasure1">Cintura (cm)</label>
+            <input type="number" id="inMeasure1" step="0.5" inputmode="decimal" placeholder="0"
+                   class="w-full bg-ink-950 border border-ink-800 rounded-xl px-4 py-3 text-white text-sm font-medium focus:border-ink-500 focus:outline-none transition">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-ink-300 mb-1.5" id="lblMeasure2">Quadril (cm)</label>
+            <input type="number" id="inMeasure2" step="0.5" inputmode="decimal" placeholder="0"
+                   class="w-full bg-ink-950 border border-ink-800 rounded-xl px-4 py-3 text-white text-sm font-medium focus:border-ink-500 focus:outline-none transition">
+          </div>
+        </div>
+        <button onclick="saveMeasurement()" class="w-full py-3 rounded-xl bg-white text-ink-950 font-bold text-sm hover:bg-ink-100 transition">
+          Salvar registro
+        </button>
+      </div>
+    </div>
+
+    <!-- Histórico -->
+    <div class="bg-ink-900 border border-ink-800 rounded-2xl overflow-hidden">
+      <div class="px-5 py-4 flex items-center justify-between border-b border-ink-800">
+        <h2 class="text-base font-bold text-white">Histórico</h2>
+        <span id="historyCount" class="text-xs text-ink-400 font-medium">0 registros</span>
+      </div>
+      <div id="historyList" class="divide-y divide-ink-800 max-h-96 overflow-y-auto"></div>
+    </div>
+  </section>
+
+  <!-- ============ ABA DIETA ============ -->
+  <section id="pane-dieta" class="pane hidden space-y-5">
+    <div class="bg-ink-900 border border-ink-800 rounded-2xl p-5">
+      <h2 class="text-base font-bold text-white" id="dietTitle">Alimentação</h2>
+      <p class="text-xs text-ink-400 mt-1" id="dietSubtitle">—</p>
+    </div>
+
+    <div id="dietWarning"></div>
+
+    <div class="grid grid-cols-2 gap-3" id="dietPillars"></div>
+
+    <div class="space-y-3" id="dietMeals"></div>
+  </section>
+
+</main>
+
+<!-- ================= TOAST ================= -->
+<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-ink-800 border border-ink-700 text-white text-xs font-semibold shadow-2xl opacity-0 pointer-events-none transition-all duration-300">
+</div>
+
+<script>
+/* ============================================================
+   ESTADO
+   ============================================================ */
+const K_PROFILE = 'tf_profile_v3';
+const K_DONE    = 'tf_done_v3';
+const K_MEAS    = 'tf_meas_v3';
+const K_TS      = 'tf_ts_v3';
+
+let profile = 'homem';
+let done = { homem: {}, mulher: {} };
+let measurements = { homem: [], mulher: [] };
+let currentWorkout = 0;
+
+/* ============================================================
+   BANCO DE TREINOS — 2 TREINOS POR SEMANA (A e B)
+   ============================================================ */
+const TREINOS = {
+  homem: [
+    {
+      letter: 'A',
+      title: 'Corpo Inteiro · Parte Superior',
+      subtitle: 'Peito, costas, ombro, tríceps e core · 6 exercícios · 45 min',
+      exercises: [
+        {
+          name: 'Supino na Máquina (Chest Press)',
+          muscle: 'Peitoral',
+          how: 'Ajuste o assento para os pegadores ficarem na linha do meio do peito. Costas 100% apoiadas, pés firmes no chão.',
+          do: 'Empurre as manoplas para frente estufando o peito. Não trave o cotovelo no final. Volte controlando.',
+          reps: '3 × 10-12',
+          peso: 'Iniciante: 10 kg cada lado',
+          rest: '90s',
+          breath: 'Solte o ar ao empurrar · inspire ao voltar'
+        },
+        {
+          name: 'Puxada Frontal na Polia Alta',
+          muscle: 'Dorsais',
+          how: 'Ajuste o rolo de coxas. Pegada aberta (acima dos ombros). Costas retas.',
+          do: 'Puxe a barra até o topo do peito trazendo cotovelos para baixo e para trás. Aperte as escápulas 1 segundo. Suba em 3 segundos.',
+          reps: '3 × 10-12',
+          peso: 'Iniciante: 25 kg',
+          rest: '90s',
+          breath: 'Solte o ar ao puxar · inspire ao subir'
+        },
+        {
+          name: 'Desenvolvimento de Ombros na Máquina',
+          muscle: 'Deltoide',
+          how: 'Assento ajustado para os pegadores ficarem na altura dos ombros. Costas retas no encosto.',
+          do: 'Empurre para cima sem estender 100% o cotovelo. Desça em 3 segundos controlando.',
+          reps: '3 × 10',
+          peso: 'Iniciante: 5 kg cada lado',
+          rest: '90s',
+          breath: 'Solte o ar ao subir · inspire ao descer'
+        },
+        {
+          name: 'Remada Baixa no Triângulo',
+          muscle: 'Meio das costas',
+          how: 'Pés no apoio, joelhos levemente flexionados. Costas retas, peito estufado. Segure o triângulo.',
+          do: 'Puxe até o abdômen levando cotovelos para trás. Aperte as costas 1 segundo. Retorne em 3 segundos.',
+          reps: '3 × 12',
+          peso: 'Iniciante: 25 kg',
+          rest: '90s',
+          breath: 'Solte o ar ao puxar · inspire ao voltar'
+        },
+        {
+          name: 'Tríceps Corda na Polia Alta',
+          muscle: 'Tríceps',
+          how: 'De pé em frente à polia alta, joelhos levemente flexionados. Cotovelos colados nas costelas.',
+          do: 'Empurre a corda para baixo e abra as pontas no final. Segure 1 segundo. Suba em 3 segundos.',
+          reps: '3 × 12',
+          peso: 'Iniciante: 15 kg',
+          rest: '60s',
+          breath: 'Solte o ar ao empurrar · inspire ao subir'
+        },
+        {
+          name: 'Abdominal na Máquina (Crunch)',
+          muscle: 'Abdômen',
+          how: 'Sente no banco curvo. Prenda os pés nos rolos. Cruze os braços no peito.',
+          do: 'Enrole o tronco para frente contraindo o abdômen. Segure 1 segundo embaixo. Volte em 3 segundos.',
+          reps: '3 × 15',
+          peso: 'Iniciante: 20 kg',
+          rest: '60s',
+          breath: 'Solte o ar ao enrolar · inspire ao voltar'
+        }
+      ]
+    },
+    {
+      letter: 'B',
+      title: 'Corpo Inteiro · Parte Inferior',
+      subtitle: 'Pernas, glúteos, panturrilha e core · 6 exercícios · 45 min',
+      exercises: [
+        {
+          name: 'Leg Press 45º',
+          muscle: 'Quadríceps, glúteo, posterior',
+          how: 'Encoste 100% a lombar. Pés no meio da plataforma na largura dos ombros.',
+          do: 'Desça até 90°. Empurre com os calcanhares sem travar os joelhos no topo.',
+          reps: '3 × 12',
+          peso: 'Iniciante: 40 kg',
+          rest: '90s',
+          breath: 'Solte o ar ao empurrar · inspire ao descer'
+        },
+        {
+          name: 'Cadeira Extensora',
+          muscle: 'Quadríceps',
+          how: 'Sente com as costas apoiadas. Rolo logo acima do tornozelo.',
+          do: 'Estenda as pernas reto à frente. Segure 1 segundo no topo. Desça em 3 segundos.',
+          reps: '3 × 12',
+          peso: 'Iniciante: 15 kg',
+          rest: '60s',
+          breath: 'Solte o ar ao subir · inspire ao descer'
+        },
+        {
+          name: 'Cadeira Flexora',
+          muscle: 'Posterior da coxa',
+          how: 'Deite de bruços. Rolo apoiado acima do calcanhar. Segure as alças.',
+          do: 'Dobre a perna trazendo o calcanhar ao glúteo. Segure 1 segundo. Desça em 3 segundos.',
+          reps: '3 × 12',
+          peso: 'Iniciante: 15 kg',
+          rest: '60s',
+          breath: 'Solte o ar ao dobrar · inspire ao estender'
+        },
+        {
+          name: 'Cadeira Abdutora',
+          muscle: 'Glúteo médio',
+          how: 'Sente com as costas apoiadas. Almofadas nos lados dos joelhos, pernas fechadas.',
+          do: 'Abra as pernas empurrando as almofadas para fora. Segure 1 segundo no máximo. Feche em 3 segundos.',
+          reps: '3 × 15',
+          peso: 'Iniciante: 20 kg',
+          rest: '60s',
+          breath: 'Solte o ar ao abrir · inspire ao fechar'
+        },
+        {
+          name: 'Panturrilha na Máquina',
+          muscle: 'Panturrilha',
+          how: 'De pé na plataforma com as pontas dos pés na borda. Almofada nos ombros.',
+          do: 'Suba nas pontas dos pés o máximo possível. Segure 1 segundo no topo. Desça em 3 segundos.',
+          reps: '3 × 15',
+          peso: 'Iniciante: 30 kg',
+          rest: '60s',
+          breath: 'Solte o ar ao subir · inspire ao descer'
+        },
+        {
+          name: 'Abdominal na Máquina',
+          muscle: 'Abdômen',
+          how: 'Banco curvo. Pés nos rolos. Braços cruzados no peito.',
+          do: 'Enrole o tronco para frente contraindo o abdômen. Segure 1 segundo. Volte em 3 segundos.',
+          reps: '3 × 15',
+          peso: 'Iniciante: 15 kg',
+          rest: '60s',
+          breath: 'Solte o ar ao enrolar · inspire ao voltar'
+        }
+      ]
+    }
+  ],
+  mulher: [
+    {
+      letter: 'A',
+      title: 'Foco em Glúteos, Posterior & Coxas',
+      subtitle: 'Firmeza e força da parte de baixo · 6 exercícios · 45 min',
+      exercises: [
+        {
+          name: 'Hip Thrust (Elevação Pélvica)',
+          muscle: 'Glúteo máximo',
+          how: 'Costas apoiadas no banco na linha das escápulas. Cinto ou almofada acima da bacia. Pés na largura dos ombros.',
+          do: 'Empurre com os calcanhares para subir a pelve. Aperte o glúteo 2 segundos no topo. Desça em 3 segundos.',
+          reps: '3 × 12-15',
+          peso: 'Iniciante: 20 kg na barra',
+          rest: '90s',
+          breath: 'Solte o ar ao subir · inspire ao descer'
+        },
+        {
+          name: 'Leg Press 45º (Pés Altos)',
+          muscle: 'Glúteos e posterior',
+          how: 'Lombar 100% apoiada. Pés no topo da plataforma, afastados na largura dos ombros.',
+          do: 'Desça até 90°. Empurre com os calcanhares sem travar os joelhos.',
+          reps: '3 × 12',
+          peso: 'Iniciante: 30 kg',
+          rest: '90s',
+          breath: 'Solte o ar ao empurrar · inspire ao descer'
+        },
+        {
+          name: 'Stiff com Barra',
+          muscle: 'Posterior e glúteo',
+          how: 'Em pé, pés na largura do quadril. Barra na frente das coxas, pegada pronada.',
+          do: 'Empurre o quadril para trás, costas retas. Desça a barra pelas pernas sentindo alongar. Suba contraindo o glúteo.',
+          reps: '3 × 12',
+          peso: 'Iniciante: 10 kg na barra',
+          rest: '90s',
+          breath: 'Inspire ao descer · solte o ar ao subir'
+        },
+        {
+          name: 'Cadeira Flexora',
+          muscle: 'Posterior da coxa',
+          how: 'Deite de bruços. Rolo no calcanhar. Segure as alças.',
+          do: 'Dobre a perna trazendo o calcanhar ao glúteo. Segure 1 segundo. Desça em 3 segundos.',
+          reps: '3 × 12',
+          peso: 'Iniciante: 10 kg',
+          rest: '60s',
+          breath: 'Solte o ar ao dobrar · inspire ao estender'
+        },
+        {
+          name: 'Cadeira Abdutora',
+          muscle: 'Glúteo médio',
+          how: 'Sente com as costas apoiadas. Almofadas nos lados dos joelhos.',
+          do: 'Abra as pernas empurrando para fora. Segure 1 segundo no máximo. Feche em 3 segundos.',
+          reps: '3 × 15',
+          peso: 'Iniciante: 15 kg',
+          rest: '60s',
+          breath: 'Solte o ar ao abrir · inspire ao fechar'
+        },
+        {
+          name: 'Abdominal na Máquina',
+          muscle: 'Abdômen',
+          how: 'Banco curvo. Pés nos rolos. Braços cruzados.',
+          do: 'Enrole o tronco para frente contraindo o abdômen. Segure 1 segundo. Volte em 3 segundos.',
+          reps: '3 × 15',
+          peso: 'Iniciante: 15 kg',
+          rest: '60s',
+          breath: 'Solte o ar ao enrolar · inspire ao voltar'
+        }
+      ]
+    },
+    {
+      letter: 'B',
+      title: 'Foco em Costas, Postura & Complemento',
+      subtitle: 'Superiores + quadríceps + abdômen · 6 exercícios · 45 min',
+      exercises: [
+        {
+          name: 'Puxada Frontal na Polia Alta',
+          muscle: 'Costas',
+          how: 'Rolo de coxas travado. Pegada aberta acima dos ombros.',
+          do: 'Puxe a barra até o topo do peito. Aperte as escápulas 1 segundo. Suba em 3 segundos.',
+          reps: '3 × 12',
+          peso: 'Iniciante: 20 kg',
+          rest: '90s',
+          breath: 'Solte o ar ao puxar · inspire ao subir'
+        },
+        {
+          name: 'Remada Baixa no Triângulo',
+          muscle: 'Costas',
+          how: 'Pés no apoio. Costas retas, peito estufado.',
+          do: 'Puxe até o abdômen levando cotovelos para trás. Aperte 1 segundo. Volte em 3 segundos.',
+          reps: '3 × 12',
+          peso: 'Iniciante: 20 kg',
+          rest: '90s',
+          breath: 'Solte o ar ao puxar · inspire ao voltar'
+        },
+        {
+          name: 'Desenvolvimento de Ombros',
+          muscle: 'Ombros',
+          how: 'Assento ajustado. Pegadores na altura dos ombros.',
+          do: 'Empurre para cima sem estender 100% o cotovelo. Desça em 3 segundos.',
+          reps: '3 × 10',
+          peso: 'Iniciante: 5 kg cada lado',
+          rest: '90s',
+          breath: 'Solte o ar ao subir · inspire ao descer'
+        },
+        {
+          name: 'Tríceps Corda na Polia',
+          muscle: 'Tríceps',
+          how: 'De pé em frente à polia alta. Cotovelos colados nas costelas.',
+          do: 'Empurre a corda para baixo e abra as pontas no final. Segure 1 segundo. Suba em 3 segundos.',
+          reps: '3 × 12',
+          peso: 'Iniciante: 10 kg',
+          rest: '60s',
+          breath: 'Solte o ar ao empurrar · inspire ao subir'
+        },
+        {
+          name: 'Rosca Direta com Halteres',
+          muscle: 'Bíceps',
+          how: 'Em pé. Halteres com pegada supinada (palmas para cima).',
+          do: 'Suba os halteres contraindo o bíceps. Segure 1 segundo no topo. Desça em 3 segundos.',
+          reps: '3 × 12',
+          peso: 'Iniciante: 4 kg cada',
+          rest: '60s',
+          breath: 'Solte o ar ao subir · inspire ao descer'
+        },
+        {
+          name: 'Cadeira Extensora',
+          muscle: 'Quadríceps',
+          how: 'Sente com as costas apoiadas. Rolo logo acima do pé.',
+          do: 'Estenda as pernas à frente. Segure 1 segundo no topo. Desça em 3 segundos.',
+          reps: '3 × 12',
+          peso: 'Iniciante: 10 kg',
+          rest: '60s',
+          breath: 'Solte o ar ao subir · inspire ao descer'
+        }
+      ]
+    }
+  ]
+};
+
+/* ============================================================
+   DIETAS
+   ============================================================ */
+const DIETAS = {
+  homem: {
+    title: 'Alimentação para Emagrecer com Saúde',
+    subtitle: 'Comida de verdade, sem dieta maluca. Foco em proteína e cortar os vilões da barriga.',
+    pillars: [
+      { t: 'Proteína em toda refeição', d: 'Ovos, frango, carne magra, peixe. Segura a fome e mantém o músculo.' },
+      { t: 'Sem refrigerante', d: 'Refri e suco de caixinha são os maiores vilões da barriga.' },
+      { t: 'Cerveja só no fim de semana', d: 'Máximo 1 ou 2 doses. Cerveja diária impede perder barriga.' },
+      { t: 'Carbo só no almoço', d: 'Arroz e pão no almoço. À noite, só proteína e legumes.' }
+    ],
+    warning: null,
+    meals: [
+      { t: 'Café da manhã', d: '3 ovos mexidos + 2 fatias de pão integral + café sem açúcar.', w: 'Proteína segura a fome até o almoço.' },
+      { t: 'Almoço', d: 'Filé de frango, carne magra ou peixe + 4 col. de arroz + 1 concha de feijão + salada com azeite.', w: 'Proteína + fibra = saciedade longa.' },
+      { t: 'Lanche da tarde', d: 'Sanduíche integral com atum ou frango + 1 fruta.', w: 'Evita chegar em casa com muita fome e exagerar.' },
+      { t: 'Jantar', d: 'Proteína (carne, frango, peixe ou ovos) + legumes. Sem arroz ou com 1 colher pequena.', w: 'Reduzir carbo à noite força o corpo a usar gordura como combustível.' }
+    ]
+  },
+  mulher: {
+    title: 'Alimentação para Uso da Caneta',
+    subtitle: 'Refeições pequenas, proteína alta, hidratação reforçada. Feito para quem usa Ozempic ou semaglutida.',
+    pillars: [
+      { t: 'Proteína é prioridade', d: 'A caneta tira a fome e pode tirar músculo junto. 1,6 a 2 g por kg de peso é obrigatório.' },
+      { t: 'Refeições pequenas e frequentes', d: 'Coma 5 a 6 vezes ao dia. A caneta causa saciedade rápida.' },
+      { t: 'Água é remédio', d: 'A caneta reduz a sede. Meta: 2,5 a 3 L por dia. Deixe a garrafa sempre perto.' },
+      { t: 'Evite gordura pesada', d: 'Frituras e muito queijo causam náusea. Prefira grelhados e assados.' }
+    ],
+    warning: {
+      t: 'Regras de ouro com a caneta',
+      items: [
+        'Coma proteína MESMO SEM FOME. 100 g de frango, 2 ovos ou 1 iogurte — mesmo pequeno.',
+        'Não pule o treino de força. É o único jeito de preservar o músculo durante o emagrecimento.',
+        'Beba água com uma pitada de sal e um pouco de água de coco se sentir tontura.',
+        'Contra intestino preso: chia, linhaça, mamão, ameixa e muita água.',
+        'Se bater náusea: pare de comer, espere 15 minutos e coma algo leve como gelatina, torrada ou iogurte.'
+      ]
+    },
+    meals: [
+      { t: 'Café da manhã', d: '2 ovos mexidos + 1 queijo branco + 1 fatia de pão integral. Ou iogurte natural com granola e chia.', w: 'Proteína mesmo sem fome preserva o músculo.' },
+      { t: 'Lanche da manhã', d: '1 fruta + 1 iogurte natural. Ou 3 castanhas + queijo branco pequeno.', w: 'Porções pequenas ajudam contra a náusea.' },
+      { t: 'Almoço', d: 'Filé médio de frango ou peixe + 2 col. arroz + 1 concha pequena de feijão + salada com azeite.', w: 'Proteína + fibra + pouco carbo = saciedade sem pesar.' },
+      { t: 'Lanche da tarde', d: 'Iogurte com chia. Ou cottage com tomate e orégano.', w: 'Proteína extra para bater a meta do dia.' },
+      { t: 'Jantar', d: 'Omelete com espinafre e ricota. Ou filé pequeno de peixe com legumes no vapor.', w: 'Refeição leve evita náusea noturna.' },
+      { t: 'Antes de dormir', d: 'Leite morno ou iogurte natural.', w: 'Proteína de digestão lenta preserva o músculo durante o sono.' }
+    ]
+  }
+};
+
+/* ============================================================
+   PERSISTÊNCIA
+   ============================================================ */
+function persist() {
+  try {
+    localStorage.setItem(K_PROFILE, profile);
+    localStorage.setItem(K_DONE, JSON.stringify(done));
+    localStorage.setItem(K_MEAS, JSON.stringify(measurements));
+    localStorage.setItem(K_TS, String(Date.now()));
+  } catch(e){}
+}
+
+function load() {
+  try {
+    const p = localStorage.getItem(K_PROFILE);
+    if(p === 'homem' || p === 'mulher') profile = p;
+
+    const d = JSON.parse(localStorage.getItem(K_DONE) || 'null');
+    if(d) done = d;
+
+    const m = JSON.parse(localStorage.getItem(K_MEAS) || 'null');
+    if(m) measurements = m;
+
+    const emb = document.getElementById('embedded-state');
+    if(emb && emb.textContent.trim() !== 'null') {
+      const e = JSON.parse(emb.textContent);
+      if(e.profile) profile = e.profile;
+      if(e.done) done = e.done;
+      if(e.measurements) measurements = e.measurements;
+    }
+  } catch(e){}
+}
+
+/* ============================================================
+   UI - PERFIL
+   ============================================================ */
+function setProfile(p) {
+  profile = p;
+  persist();
+  updateProfileUI();
+  renderWorkout();
+  renderProgress();
+  renderDiet();
+}
+
+function updateProfileUI() {
+  const isH = profile === 'homem';
+
+  ['homem', 'mulher'].forEach(pp => {
+    const b = document.getElementById('prof-' + pp);
+    if (pp === profile) {
+      b.className = 'flex-1 py-2.5 rounded-lg text-sm font-bold transition-all bg-white text-ink-950 shadow-sm';
+    } else {
+      b.className = 'flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all text-ink-400 hover:text-ink-200';
+    }
+  });
+
+  document.getElementById('headerSub').textContent = isH
+    ? 'Treino masculino · 2x por semana'
+    : 'Treino feminino · 2x por semana';
+
+  document.getElementById('measureHelp').textContent = isH
+    ? 'A balança engana (músculo pesa mais que gordura). O que importa é a barriga na altura do umbigo diminuindo.'
+    : 'A balança oscila com o ciclo. As medidas de cintura e quadril mostram a perda real de gordura.';
+
+  document.getElementById('lblMeasure1').textContent = isH ? 'Barriga (cm)' : 'Cintura (cm)';
+  document.getElementById('lblMeasure2').textContent = isH ? 'Peito (cm)' : 'Quadril (cm)';
+}
+
+/* ============================================================
+   UI - TREINO
+   ============================================================ */
+function selectWorkout(i) {
+  currentWorkout = i;
+  renderWorkout();
+}
+
+function renderWorkout() {
+  const w = TREINOS[profile][currentWorkout];
+  const doneMap = done[profile]?.[currentWorkout] || {};
+
+  document.getElementById('workoutLetter').textContent = 'Treino ' + w.letter;
+  document.getElementById('workoutTitle').textContent = w.title;
+  document.getElementById('workoutSubtitle').textContent = w.subtitle;
+
+  // Botões A/B
+  for (let i = 0; i < 2; i++) {
+    const b = document.getElementById('wbtn-' + i);
+    if (i === currentWorkout) {
+      b.className = 'wbtn py-3 rounded-xl text-sm font-bold transition bg-white text-ink-950 shadow-sm';
+    } else {
+      b.className = 'wbtn py-3 rounded-xl text-sm font-bold transition bg-ink-900 text-ink-300 border border-ink-800 hover:border-ink-700 hover:text-white';
+    }
+  }
+
+  // Lista de exercícios
+  const list = document.getElementById('exercisesList');
+  list.innerHTML = '';
+
+  w.exercises.forEach((ex, idx) => {
+    const isDone = !!doneMap[idx];
+    const card = document.createElement('div');
+    card.className = `rounded-2xl border transition ${isDone ? 'bg-ink-900 border-ink-700' : 'bg-ink-900 border-ink-800'}`;
+
+    card.innerHTML = `
+      <div class="p-5">
+        <div class="flex items-start gap-4">
+          <button onclick="toggleExercise(${idx})"
+                  class="mt-0.5 shrink-0 w-6 h-6 rounded-md border-2 flex items-center justify-center transition ${isDone ? 'bg-white border-white' : 'bg-transparent border-ink-600 hover:border-ink-400'}">
+            ${isDone ? '<svg class="w-4 h-4 text-ink-950" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
+          </button>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-baseline gap-2 flex-wrap">
+              <span class="text-[11px] font-mono font-bold text-ink-500">${String(idx + 1).padStart(2, '0')}</span>
+              <h3 class="text-base font-bold ${isDone ? 'text-ink-400 line-through' : 'text-white'}">${ex.name}</h3>
+            </div>
+            <p class="text-[11px] text-ink-400 mt-0.5 font-medium">${ex.muscle}</p>
+          </div>
+        </div>
+
+        <div class="mt-4 space-y-3 pl-10">
+          <div>
+            <p class="text-[10px] uppercase tracking-wider font-bold text-ink-500 mb-1">Como posicionar</p>
+            <p class="text-[13px] text-ink-200 leading-relaxed">${ex.how}</p>
+          </div>
+          <div>
+            <p class="text-[10px] uppercase tracking-wider font-bold text-ink-500 mb-1">Como executar</p>
+            <p class="text-[13px] text-ink-200 leading-relaxed">${ex.do}</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <div class="bg-ink-950 border border-ink-800 rounded-lg px-3 py-2">
+              <p class="text-[10px] uppercase tracking-wider font-bold text-ink-500 mb-0.5">Repetições</p>
+              <p class="text-xs font-bold text-white">${ex.reps}</p>
+            </div>
+            <div class="bg-ink-950 border border-ink-800 rounded-lg px-3 py-2">
+              <p class="text-[10px] uppercase tracking-wider font-bold text-ink-500 mb-0.5">Peso inicial</p>
+              <p class="text-xs font-bold text-white">${ex.peso}</p>
+            </div>
+            <div class="bg-ink-950 border border-ink-800 rounded-lg px-3 py-2">
+              <p class="text-[10px] uppercase tracking-wider font-bold text-ink-500 mb-0.5">Descanso</p>
+              <p class="text-xs font-bold text-white">${ex.rest}</p>
+            </div>
+            <div class="bg-ink-950 border border-ink-800 rounded-lg px-3 py-2">
+              <p class="text-[10px] uppercase tracking-wider font-bold text-ink-500 mb-0.5">Respiração</p>
+              <p class="text-xs font-bold text-white">${ex.breath}</p>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    list.appendChild(card);
+  });
+
+  updateWorkoutProgress();
+}
+
+function toggleExercise(idx) {
+  if (!done[profile]) done[profile] = {};
+  if (!done[profile][currentWorkout]) done[profile][currentWorkout] = {};
+
+  done[profile][currentWorkout][idx] = !done[profile][currentWorkout][idx];
+  persist();
+  renderWorkout();
+  renderProgress();
+}
+
+function resetWorkout() {
+  if (!confirm('Recomeçar este treino do zero?')) return;
+  if (done[profile]) done[profile][currentWorkout] = {};
+  persist();
+  renderWorkout();
+  renderProgress();
+}
+
+function resetWeek() {
+  if (!confirm('Recomeçar a semana (limpar tudo)?')) return;
+  if (done[profile]) done[profile] = {};
+  persist();
+  renderWorkout();
+  renderProgress();
+}
+
+function updateWorkoutProgress() {
+  const w = TREINOS[profile][currentWorkout];
+  const doneMap = done[profile]?.[currentWorkout] || {};
+  let count = 0;
+  w.exercises.forEach((_, i) => { if (doneMap[i]) count++; });
+
+  document.getElementById('workoutProgressNum').textContent = `${count}/${w.exercises.length}`;
+  const pct = Math.round((count / w.exercises.length) * 100);
+  document.getElementById('workoutProgressBar').style.width = pct + '%';
+}
+
+/* ============================================================
+   UI - PROGRESSO
+   ============================================================ */
+function renderProgress() {
+  let completed = 0;
+  for (let w = 0; w < 2; w++) {
+    const ww = TREINOS[profile][w];
+    const doneMap = done[profile]?.[w] || {};
+    let c = 0;
+    ww.exercises.forEach((_, i) => { if (doneMap[i]) c++; });
+
+    const full = c === ww.exercises.length;
+    if (full) completed++;
+
+    const card = document.getElementById('dayCard-' + w);
+    const status = document.getElementById('dayStatus-' + w);
+    if (full) {
+      card.className = 'rounded-lg border border-ink-600 bg-ink-800 p-4 transition';
+      status.textContent = '✓ concluído';
+      status.className = 'text-sm font-bold text-white mt-1';
+    } else {
+      card.className = 'rounded-lg border border-ink-800 bg-ink-950 p-4 transition';
+      status.textContent = `${c}/${ww.exercises.length} exercícios`;
+      status.className = 'text-sm font-bold text-ink-400 mt-1';
+    }
+  }
+
+  document.getElementById('weekBadge').textContent = `${completed}/2 treinos`;
+  document.getElementById('weekBar').style.width = ((completed / 2) * 100) + '%';
+
+  // Histórico de medidas
+  const list = document.getElementById('historyList');
+  const logs = measurements[profile] || [];
+  document.getElementById('historyCount').textContent = `${logs.length} registros`;
+
+  if (logs.length === 0) {
+    list.innerHTML = '<div class="px-5 py-8 text-center text-ink-500 text-xs">Nenhum registro ainda</div>';
+  } else {
+    list.innerHTML = [...logs].reverse().map(l => {
+      const lbl1 = profile === 'homem' ? 'Barriga' : 'Cintura';
+      const lbl2 = profile === 'homem' ? 'Peito' : 'Quadril';
+      return `
+        <div class="px-5 py-4 flex items-center justify-between gap-4">
+          <div>
+            <p class="text-xs font-semibold text-white">${l.date}</p>
+            <p class="text-[11px] text-ink-500 mt-0.5">${l.notes || '—'}</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-bold text-white">${Number(l.weight).toFixed(1)} kg</p>
+            <p class="text-[11px] text-ink-400 mt-0.5">
+              ${l.m1 ? lbl1 + ' ' + l.m1 + ' cm' : ''}${l.m1 && l.m2 ? ' · ' : ''}${l.m2 ? lbl2 + ' ' + l.m2 + ' cm' : ''}
+            </p>
+          </div>
+        </div>`;
+    }).join('');
+  }
+}
+
+function saveMeasurement() {
+  const w = parseFloat(document.getElementById('inWeight').value);
+  const m1 = parseFloat(document.getElementById('inMeasure1').value);
+  const m2 = parseFloat(document.getElementById('inMeasure2').value);
+
+  if (!w || isNaN(w)) { showToast('Informe o peso'); return; }
+
+  if (!measurements[profile]) measurements[profile] = [];
+  measurements[profile].push({
+    date: new Date().toLocaleDateString('pt-BR'),
+    weight: w,
+    m1: m1 || null,
+    m2: m2 || null,
+    notes: ''
+  });
+
+  document.getElementById('inWeight').value = '';
+  document.getElementById('inMeasure1').value = '';
+  document.getElementById('inMeasure2').value = '';
+
+  persist();
+  renderProgress();
+  showToast('Registro salvo');
+}
+
+/* ============================================================
+   UI - DIETA
+   ============================================================ */
+function renderDiet() {
+  const d = DIETAS[profile];
+
+  document.getElementById('dietTitle').textContent = d.title;
+  document.getElementById('dietSubtitle').textContent = d.subtitle;
+
+  document.getElementById('dietPillars').innerHTML = d.pillars.map(p => `
+    <div class="bg-ink-900 border border-ink-800 rounded-xl p-4">
+      <p class="text-xs font-bold text-white leading-snug">${p.t}</p>
+      <p class="text-[11px] text-ink-400 leading-relaxed mt-1">${p.d}</p>
+    </div>`).join('');
+
+  const warn = document.getElementById('dietWarning');
+  if (d.warning) {
+    warn.innerHTML = `
+      <div class="bg-ink-900 border border-ink-700 rounded-2xl p-5">
+        <h3 class="text-sm font-bold text-white mb-3">${d.warning.t}</h3>
+        <ul class="space-y-2 text-[12px] text-ink-300 leading-relaxed">
+          ${d.warning.items.map(it => `<li class="flex gap-2"><span class="text-ink-500 shrink-0">•</span><span>${it}</span></li>`).join('')}
+        </ul>
+      </div>`;
+  } else {
+    warn.innerHTML = '';
+  }
+
+  document.getElementById('dietMeals').innerHTML = d.meals.map((m, i) => `
+    <div class="bg-ink-900 border border-ink-800 rounded-2xl p-5">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-[11px] font-mono font-bold text-ink-500">${String(i+1).padStart(2,'0')}</span>
+        <h4 class="text-sm font-bold text-white">${m.t}</h4>
+      </div>
+      <p class="text-[12.5px] text-ink-200 leading-relaxed">${m.d}</p>
+      <p class="text-[11px] text-ink-500 leading-relaxed mt-2 pt-2 border-t border-ink-800"><span class="font-semibold text-ink-400">Por quê:</span> ${m.w}</p>
+    </div>`).join('');
+}
+
+/* ============================================================
+   UI - ABAS
+   ============================================================ */
+function switchTab(tab) {
+  ['treinos', 'progresso', 'dieta'].forEach(t => {
+    document.getElementById('pane-' + t).classList.add('hidden');
+    const btn = document.getElementById('tab-btn-' + t);
+    btn.className = 'tab-btn shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition text-ink-400 hover:text-white';
+  });
+
+  document.getElementById('pane-' + tab).classList.remove('hidden');
+  document.getElementById('tab-btn-' + tab).className =
+    'tab-btn shrink-0 px-4 py-2 rounded-lg text-sm font-bold transition bg-ink-800 text-white border border-ink-700';
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'translate(-50%, -8px)';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translate(-50%, 0)';
+  }, 2200);
+}
+
+/* ============================================================
+   SALVAR HTML
+   ============================================================ */
+function downloadHtmlWithState() {
+  const state = {
+    profile,
+    done,
+    measurements,
+    timestamp: Date.now()
+  };
+  const str = JSON.stringify(state).replace(/</g, '\\u003c');
+
+  const el = document.getElementById('embedded-state');
+  if (el) el.textContent = str;
+
+  const html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  const updated = html.replace(
+    /(<script id="embedded-state" type="application\/json">)[\s\S]*?(<\/script>)/,
+    `$1${str}$2`
+  );
+
+  const blob = new Blob([updated], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'meus-treinos.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast('Arquivo salvo');
+}
+
+/* ============================================================
+   INICIALIZAÇÃO
+   ============================================================ */
+window.addEventListener('DOMContentLoaded', () => {
+  load();
+  updateProfileUI();
+  switchTab('treinos');
+  renderWorkout();
+  renderProgress();
+  renderDiet();
+});
+</script>
+
+</body>
+</html>
